@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📻 Global Radio Directory</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 40px 20px;
+            background: rgba(0,0,0,0.3);
+        }
+        
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .live-badge {
+            display: inline-flex;
+            align-items: center;
+            background: #e94560;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+            margin-top: 10px;
+        }
+        
+        .live-dot {
+            width: 10px;
+            height: 10px;
+            background: white;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            padding: 20px;
+            background: rgba(0,0,0,0.2);
+            flex-wrap: wrap;
+        }
+        
+        .stat-box {
+            text-align: center;
+            padding: 15px 30px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            min-width: 150px;
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #ffd700;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            padding: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #e94560;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #ff6b6b;
+            transform: scale(1.05);
+        }
+        
+        .btn-secondary {
+            background: #533483;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #7b68ee;
+            transform: scale(1.05);
+        }
+        
+        .search-box {
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .search-box input {
+            width: 80%;
+            max-width: 500px;
+            padding: 15px 25px;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.1em;
+            background: rgba(255,255,255,0.15);
+            color: white;
+            outline: none;
+        }
+        
+        .search-box input::placeholder {
+            color: rgba(255,255,255,0.6);
+        }
+        
+        .radio-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .radio-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 25px;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .radio-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255,255,255,0.15);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .radio-card.playing {
+            border: 2px solid #ffd700;
+            background: rgba(255,215,0,0.1);
+        }
+        
+        .radio-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+        
+        .radio-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .radio-genre {
+            color: #aaa;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+        
+        .radio-country {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            margin-bottom: 10px;
+        }
+        
+        .play-btn {
+            width: 100%;
+            padding: 12px;
+            background: #e94560;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 10px;
+            transition: all 0.3s;
+        }
+        
+        .play-btn:hover {
+            background: #ff6b6b;
+        }
+        
+        .play-btn.playing {
+            background: #533483;
+        }
+        
+        .listeners {
+            font-size: 0.85em;
+            color: #aaa;
+            margin-top: 8px;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: #1a1a2e;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal h2 {
+            margin-bottom: 20px;
+            color: #ffd700;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.15);
+            color: white;
+            font-size: 1em;
+        }
+        
+        .form-group input::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 2em;
+            cursor: pointer;
+            color: white;
+        }
+        
+        .player-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.9);
+            padding: 20px;
+            display: none;
+            align-items: center;
+            gap: 20px;
+            z-index: 100;
+        }
+        
+        .player-bar.active {
+            display: flex;
+        }
+        
+        .now-playing {
+            flex: 1;
+        }
+        
+        .now-playing h3 {
+            color: #ffd700;
+            margin-bottom: 5px;
+        }
+        
+        audio {
+            width: 300px;
+        }
+        
+        .category-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            padding: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .tab.active, .tab:hover {
+            background: #e94560;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #aaa;
+        }
+        
+        .empty-state h3 {
+            font-size: 2em;
+            margin-bottom: 15px;
+            color: white;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2em; }
+            .stats-bar { gap: 15px; }
+            .radio-grid { grid-template-columns: 1fr; }
+            audio { width: 200px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>📻 Global Radio Directory</h1>
+        <p>Discover & Share Radio Stations from Around the World</p>
+        <div class="live-badge">
+            <div class="live-dot"></div>
+            LIVE NOW
+        </div>
+    </div>
+    
+    <!-- Live Stats -->
+    <div class="stats-bar">
+        <div class="stat-box">
+            <div class="stat-number" id="totalStations">0</div>
+            <div class="stat-label">Radio Stations</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-number" id="totalCountries">0</div>
+            <div class="stat-label">Countries</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-number" id="totalVisits">
+                <img src="https://komarev.com/ghpvc/?username=YOUR_GITHUB_USERNAME&label=&color=ffd700&style=flat" alt="visitors" style="height: 30px;">
+            </div>
+            <div class="stat-label">Total Visits</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-number" id="onlineNow">🔴</div>
+            <div class="stat-label">Online Now</div>
+        </div>
+    </div>
+    
+    <!-- Controls -->
+    <div class="controls">
+        <button class="btn btn-primary" onclick="openAddModal()">➕ Add Your Radio</button>
+        <button class="btn btn-secondary" onclick="loadDefaultStations()">🎵 Load Default Stations</button>
+        <button class="btn btn-secondary" onclick="clearAllStations()">🗑️ Clear All</button>
+    </div>
+    
+    <!-- Search -->
+    <div class="search-box">
+        <input type="text" id="searchInput" placeholder="🔍 Search stations by name, genre, or country..." onkeyup="searchStations()">
+    </div>
+    
+    <!-- Category Tabs -->
+    <div class="category-tabs">
+        <button class="tab active" onclick="filterByCategory('all')">All</button>
+        <button class="tab" onclick="filterByCategory('music')">🎵 Music</button>
+        <button class="tab" onclick="filterByCategory('news')">📰 News</button>
+        <button class="tab" onclick="filterByCategory('talk')">🗣️ Talk</button>
+        <button class="tab" onclick="filterByCategory('community')">🏘️ Community</button>
+    </div>
+    
+    <!-- Radio Grid -->
+    <div class="radio-grid" id="radioGrid">
+        <!-- Stations will be loaded here -->
+    </div>
+    
+    <!-- Empty State -->
+    <div class="empty-state" id="emptyState" style="display: none;">
+        <h3>📻 No stations yet!</h3>
+        <p>Click "Add Your Radio" to add the first station, or "Load Default Stations" to see some examples.</p>
+    </div>
+    
+    <!-- Player Bar -->
+    <div class="player-bar" id="playerBar">
+        <div class="now-playing">
+            <h3 id="nowPlayingTitle">Select a station</h3>
+            <p id="nowPlayingInfo">Click any station to start listening</p>
+        </div>
+        <audio id="audioPlayer" controls></audio>
+        <button class="btn btn-secondary" onclick="closePlayer()">✕</button>
+    </div>
+    
+    <!-- Add Radio Modal -->
+    <div class="modal" id="addModal">
+        <div class="modal-content" style="position: relative;">
+            <span class="close-btn" onclick="closeAddModal()">✕</span>
+            <h2>➕ Add Your Radio Station</h2>
+            <p style="margin-bottom: 20px; color: #aaa;">Share your favorite radio station with the world!</p>
+            
+            <div class="form-group">
+                <label>📻 Station Name *</label>
+                <input type="text" id="stationName" placeholder="e.g., Jazz FM 101">
+            </div>
+            
+            <div class="form-group">
+                <label>🔗 Stream URL *</label>
+                <input type="url" id="stationUrl" placeholder="https://stream.example.com/radio.mp3">
+            </div>
+            
+            <div class="form-group">
+                <label>🏷️ Genre *</label>
+                <select id="stationGenre">
+                    <option value="music">🎵 Music</option>
+                    <option value="news">📰 News</option>
+                    <option value="talk">🗣️ Talk</option>
+                    <option value="sports">⚽ Sports</option>
+                    <option value="community">🏘️ Community</option>
+                    <option value="religious">🙏 Religious</option>
+                    <option value="other">📦 Other</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>🌍 Country</label>
+                <input type="text" id="stationCountry" placeholder="e.g., USA, India, UK">
+            </div>
+            
+            <div class="form-group">
+                <label>🌐 Website (optional)</label>
+                <input type="url" id="stationWebsite" placeholder="https://yourstation.com">
+            </div>
+            
+            <button class="btn btn-primary" onclick="addStation()" style="width: 100%;">🚀 Add Station</button>
+            
+            <p style="margin-top: 15px; font-size: 0.85em; color: #888; text-align: center;">
+                💡 Tip: Use direct stream URLs (ending in .mp3, .aac, or .m3u)
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // RADIO STATION DATA (Stored in browser memory)
+        // ============================================
+        
+        let stations = [];
+        let currentStation = null;
+        
+        // Default stations to get started
+        const defaultStations = [
+            {
+                id: 1,
+                name: "🎷 SomaFM Groove Salad",
+                url: "https://ice1.somafm.com/groovesalad-128-mp3",
+                genre: "music",
+                country: "🇺🇸 USA",
+                website: "https://somafm.com",
+                icon: "🎷",
+                addedBy: "Admin"
+            },
+            {
+                id: 2,
+                name: "🎸 Radio Paradise",
+                url: "https://stream.radioparadise.com/mp3-192",
+                genre: "music",
+                country: "🇺🇸 USA",
+                website: "https://radioparadise.com",
+                icon: "🎸",
+                addedBy: "Admin"
+            },
+            {
+                id: 3,
+                name: "📻 BBC World Service",
+                url: "https://stream.live.vc.bbcmedia.co.uk/bbc_world_service",
+                genre: "news",
+                country: "🇬🇧 UK",
+                website: "https://bbc.com/worldservice",
+                icon: "📻",
+                addedBy: "Admin"
+            },
+            {
+                id: 4,
+                name: "🎵 NTS Radio",
+                url: "https://stream-relay-geo.ntslive.net/stream",
+                genre: "music",
+                country: "🇬🇧 UK",
+                website: "https://ntslive.co.uk",
+                icon: "🎵",
+                addedBy: "Admin"
+            },
+            {
+                id: 5,
+                name: "🎤 KEXP 90.3 FM",
+                url: "https://kexp-mp3-128.streamguys1.com/kexp128.mp3",
+                genre: "music",
+                country: "🇺🇸 USA",
+                website: "https://kexp.org",
+                icon: "🎤",
+                addedBy: "Admin"
+            },
+            {
+                id: 6,
+                name: "📰 NPR News",
+                url: "https://npr-ice.streamguys1.com/live.mp3",
+                genre: "news",
+                country: "🇺🇸 USA",
+                website: "https://npr.org",
+                icon: "📰",
+                addedBy: "Admin"
+            }
+        ];
+        
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        
+        function init() {
+            // Try to load from localStorage first
+            const saved = localStorage.getItem('radioStations');
+            if (saved) {
+                stations = JSON.parse(saved);
+            }
+            renderStations();
+            updateStats();
+        }
+        
+        // ============================================
+        // RENDER STATIONS
+        // ============================================
+        
+        function renderStations(filter = 'all', searchTerm = '') {
+            const grid = document.getElementById('radioGrid');
+            const emptyState = document.getElementById('emptyState');
+            
+            let filtered = stations;
+            
+            // Filter by category
+            if (filter !== 'all') {
+                filtered = filtered.filter(s => s.genre === filter);
+            }
+            
+            // Filter by search
+            if (searchTerm) {
+                const term = searchTerm.toLowerCase();
+                filtered = filtered.filter(s => 
+                    s.name.toLowerCase().includes(term) ||
+                    s.genre.toLowerCase().includes(term) ||
+                    s.country.toLowerCase().includes(term)
+                );
+            }
+            
+            if (filtered.length === 0) {
+                grid.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            emptyState.style.display = 'none';
+            
+            grid.innerHTML = filtered.map(station => `
+                <div class="radio-card ${currentStation?.id === station.id ? 'playing' : ''}" onclick="playStation(${station.id})">
+                    <div class="radio-icon">${station.icon || '📻'}</div>
+                    <div class="radio-name">${station.name}</div>
+                    <div class="radio-genre">${getGenreLabel(station.genre)}</div>
+                    <div class="radio-country">${station.country || '🌍 Global'}</div>
+                    <button class="play-btn ${currentStation?.id === station.id ? 'playing' : ''}" onclick="event.stopPropagation(); playStation(${station.id})">
+                        ${currentStation?.id === station.id ? '⏸️ Pause' : '▶️ Play'}
+                    </button>
+                    <div class="listeners">👤 Added by: ${station.addedBy || 'Anonymous'}</div>
+                </div>
+            `).join('');
+            
+            updateStats();
+        }
+        
+        function getGenreLabel(genre) {
+            const labels = {
+                music: '🎵 Music',
+                news: '📰 News',
+                talk: '🗣️ Talk',
+                sports: '⚽ Sports',
+                community: '🏘️ Community',
+                religious: '🙏 Religious',
+                other: '📦 Other'
+            };
+            return labels[genre] || genre;
+        }
+        
+        // ============================================
+        // PLAY STATION
+        // ============================================
+        
+        function playStation(id) {
+            const station = stations.find(s => s.id === id);
+            if (!station) return;
+            
+            const player = document.getElementById('audioPlayer');
+            const playerBar = document.getElementById('playerBar');
+            const title = document.getElementById('nowPlayingTitle');
+            const info = document.getElementById('nowPlayingInfo');
+            
+            if (currentStation?.id === id) {
+                // Toggle pause/play
+                if (player.paused) {
+                    player.play();
+                } else {
+                    player.pause();
+                }
+            } else {
+                // New station
+                currentStation = station;
+                player.src = station.url;
+                player.play();
+                
+                title.textContent = station.name;
+                info.textContent = `${getGenreLabel(station.genre)} • ${station.country}`;
+                playerBar.classList.add('active');
+            }
+            
+            renderStations(document.querySelector('.tab.active')?.textContent.includes('All') ? 'all' : 
+                document.querySelector('.tab.active')?.textContent.toLowerCase().includes('music') ? 'music' :
+                document.querySelector('.tab.active')?.textContent.toLowerCase().includes('news') ? 'news' :
+                document.querySelector('.tab.active')?.textContent.toLowerCase().includes('talk') ? 'talk' :
+                document.querySelector('.tab.active')?.textContent.toLowerCase().includes('community') ? 'community' : 'all');
+        }
+        
+        function closePlayer() {
+            const player = document.getElementById('audioPlayer');
+            const playerBar = document.getElementById('playerBar');
+            player.pause();
+            playerBar.classList.remove('active');
+            currentStation = null;
+            renderStations();
+        }
+        
+        // ============================================
+        // ADD STATION (User Submitted)
+        // ============================================
+        
+        function openAddModal() {
+            document.getElementById('addModal').classList.add('active');
+        }
+        
+        function closeAddModal() {
+            document.getElementById('addModal').classList.remove('active');
+            // Clear form
+            document.getElementById('stationName').value = '';
+            document.getElementById('stationUrl').value = '';
+            document.getElementById('stationCountry').value = '';
+            document.getElementById('stationWebsite').value = '';
+        }
+        
+        function addStation() {
+            const name = document.getElementById('stationName').value.trim();
+            const url = document.getElementById('stationUrl').value.trim();
+            const genre = document.getElementById('stationGenre').value;
+            const country = document.getElementById('stationCountry').value.trim();
+            const website = document.getElementById('stationWebsite').value.trim();
+            
+            if (!name || !url) {
+                alert('❌ Please fill in Station Name and Stream URL!');
+                return;
+            }
+            
+            // Validate URL
+            if (!url.startsWith('http')) {
+                alert('❌ URL must start with http:// or https://');
+                return;
+            }
+            
+            const newStation = {
+                id: Date.now(),
+                name: name,
+                url: url,
+                genre: genre,
+                country: country || '🌍 Global',
+                website: website,
+                icon: getIconForGenre(genre),
+                addedBy: 'User'
+            };
+            
+            stations.push(newStation);
+            saveStations();
+            renderStations();
+            closeAddModal();
+            
+            alert('✅ Station added successfully! It will appear in the list.');
+        }
+        
+        function getIconForGenre(genre) {
+            const icons = {
+                music: '🎵',
+                news: '📰',
+                talk: '🗣️',
+                sports: '⚽',
+                community: '🏘️',
+                religious: '🙏',
+                other: '📦'
+            };
+            return icons[genre] || '📻';
+        }
+        
+        // ============================================
+        // SAVE & LOAD
+        // ============================================
+        
+        function saveStations() {
+            localStorage.setItem('radioStations', JSON.stringify(stations));
+        }
+        
+        function loadDefaultStations() {
+            if (confirm('Load default stations? This will add 6 popular stations.')) {
+                stations = [...stations, ...defaultStations];
+                saveStations();
+                renderStations();
+            }
+        }
+        
+        function clearAllStations() {
+            if (confirm('⚠️ Are you sure? This will remove ALL stations!')) {
+                stations = [];
+                saveStations();
+                renderStations();
+                closePlayer();
+            }
+        }
+        
+        // ============================================
+        // SEARCH & FILTER
+        // ============================================
+        
+        function searchStations() {
+            const term = document.getElementById('searchInput').value;
+            const activeTab = document.querySelector('.tab.active');
+            const category = activeTab ? activeTab.getAttribute('onclick').match(/'([^']+)'/)[1] : 'all';
+            renderStations(category, term);
+        }
+        
+        function filterByCategory(category) {
+            // Update active tab
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            const term = document.getElementById('searchInput').value;
+            renderStations(category, term);
+        }
+        
+        // ============================================
+        // STATS
+        // ============================================
+        
+        function updateStats() {
+            document.getElementById('totalStations').textContent = stations.length;
+            
+            const countries = new Set(stations.map(s => s.country).filter(Boolean));
+            document.getElementById('totalCountries').textContent = countries.size;
+        }
+        
+        // ============================================
+        // LIVE LISTENER COUNTER (Simulated)
+        // ============================================
+        
+        function updateOnlineCount() {
+            // This simulates live online users
+            // In a real app, you'd fetch this from a server
+            const baseCount = Math.floor(Math.random() * 15) + 5;
+            document.getElementById('onlineNow').textContent = baseCount;
+        }
+        
+        // Update every 10 seconds
+        setInterval(updateOnlineCount, 10000);
+        updateOnlineCount();
+        
+        // ============================================
+        // START
+        // ============================================
+        
+        init();
+        
+        // Close modal on outside click
+        document.getElementById('addModal').addEventListener('click', function(e) {
+            if (e.target === this) closeAddModal();
+        });
+    </script>
+</body>
+</html>
